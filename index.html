@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine Security Check</title>
+
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    background: linear-gradient(135deg, #ffe6f0, #fff5e6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.stage {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #d63384;
+}
+
+#question-card {
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    padding: 30px 20px;
+    transition: transform 0.3s;
+}
+
+#question-text {
+    font-size: 1.5em;
+    font-family: 'Brush Script MT', cursive;
+    color: #000;
+    margin-bottom: 25px;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option-btn {
+    padding: 15px 20px;
+    border-radius: 30px;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #ffccd5;
+    color: #880e4f;
+}
+
+.option-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(136,14,79,0.3);
+}
+
+.option-btn.correct {
+    background-color: #b2fab4;
+    color: #1b5e20;
+}
+
+.option-btn.wrong {
+    background-color: #ffcdd2;
+    color: #b71c1c;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+#progress {
+    margin-top: 25px;
+    font-size: 1em;
+    color: #880e4f;
+    position: relative;
+    height: 30px;
+}
+
+.heart-bar {
+    width: 100%;
+    height: 12px;
+    background: #ffd6e0;
+    border-radius: 6px;
+    position: relative;
+    margin-top: 5px;
+}
+
+.heart-fill {
+    height: 100%;
+    background: #d63384;
+    width: 0%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+
+.floating-heart {
+    position: absolute;
+    top: 18px;
+    font-size: 18px;
+    transition: left 0.4s ease;
+}
+
+/* Stage 2 */
+#stage2 {
+    display: none;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+#stage2.show {
+    opacity: 1;
+}
+
+#memory-intro {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    color: #880e4f;
+}
+
+.slide-media {
+    width: 100%;
+    max-height: 400px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#slide-caption {
+    margin-top: 12px;
+    font-size: 1.1em;
+    color: #d63384;
+    font-family: 'Brush Script MT', cursive;
+}
+
+/* Stage 3 Valentine */
+#stage3 {
+    display: none;
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    background: url('assets/images/background.jpg') no-repeat center center;
+    background-size: contain; /* scale to fit screen */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#stage3 h2 {
+    font-family: 'Brush Script MT', cursive;
+    color: #fff;
+    font-size: 3em;
+    margin-bottom: 50px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+
+#stage3 .option-btn {
+    position: absolute;
+    padding: 15px 25px;
+    font-size: 1.2em;
+}
+
+#yes-btn {
+    left: 50%;
+    top: 60%;
+    transform: translateX(-50%);
+}
+
+/* Stage 4 Final Video */
+#stage4 {
+    display: none;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#final-message {
+    font-family: 'Brush Script MT', cursive;
+    color: #d63384;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#final-video {
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bg-music" src="assets/music/background.mp3" autoplay loop></audio>
+
+<!-- Stage 1 -->
+<div id="stage1" class="stage">
+    <h2>Security Verification 💕</h2>
+    <div id="question-card">
+        <p id="question-text"></p>
+        <div class="options">
+            <button class="option-btn" id="optionA"></button>
+            <button class="option-btn" id="optionB"></button>
+        </div>
+        <div id="progress">
+            1 / 10
+            <div class="heart-bar">
+                <div class="heart-fill"></div>
+            </div>
+            <span class="floating-heart">❤️</span>
+        </div>
+    </div>
+</div>
+
+<!-- Stage 2 -->
+<div id="stage2" class="stage">
+    <h2>You're Verified 🎉</h2>
+    <p id="memory-intro">
+        You're verified, and here's a little walk down memory lane Cupcake 🧁💕
+    </p>
+    <div id="slide-container">
+        <img id="slide-image" class="slide-media" style="display:none;">
+        <video id="slide-video" class="slide-media" style="display:none;" muted loop></video>
+    </div>
+    <p id="slide-caption"></p>
+</div>
+
+<!-- Stage 3 -->
+<div id="stage3">
+    <h2>Will you be my Valentine? 💘</h2>
+    <button id="yes-btn" class="option-btn">Yes 💖</button>
+    <button id="no-btn" class="option-btn">No 😅</button>
+</div>
+
+<!-- Stage 4 -->
+<div id="stage4">
+    <div id="final-message">
+        To my Valentine, Monalisa Ahia-Armah<br>
+        I love you dearly, today and forever
+    </div>
+    <video id="final-video" controls>
+        <source src="assets/videos/cupcake_song.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<script>
+// MUSIC
+const bgMusic = document.getElementById('bg-music');
+bgMusic.volume = 0.5;
+
+// QUIZ DATA
+const questions = [
+    {q:"Your name", a:"Monalisa Ahia-Armah", b:"Christabel Thelma"},
+    {q:"Favorite color", a:"Green", b:"Barbiecore Pink"},
+    {q:"Favorite podcast", a:"BTFS", b:"The Delulu Diaries"},
+    {q:"Your pet name", a:"Cupcake", b:"Shortcake"},
+    {q:"My pet name", a:"Babyju", b:"Snuggles"},
+    {q:"Our first text", a:"07/10/2024", b:"08/10/2024"},
+    {q:"Anniversary date", a:"10/11/2024", b:"09/11/2024"},
+    {q:"Our favorite word", a:"Marital attachment", b:"Sweetheart"},
+    {q:"Honeymoon destination", a:"Zanzibar", b:"Bora Bora"},
+    {q:"Number of kids", a:"12: 6 sets of twins", b:"4 max"}
+];
+
+let currentQ = 0;
+const totalQ = questions.length;
+
+const questionText = document.getElementById('question-text');
+const optionA = document.getElementById('optionA');
+const optionB = document.getElementById('optionB');
+const progressText = document.querySelector('#progress');
+const heartFill = document.querySelector('.heart-fill');
+const floatingHeart = document.querySelector('.floating-heart');
+const heartBar = document.querySelector('.heart-bar');
+
+function shuffleOptions(correct, wrong) {
+    return Math.random() < 0.5 ? [correct, wrong] : [wrong, correct];
+}
+
+function updateQuestion() {
+    const q = questions[currentQ];
+    questionText.textContent = q.q;
+    const [first, second] = shuffleOptions(q.a, q.b);
+    optionA.textContent = first;
+    optionB.textContent = second;
+    progressText.childNodes[0].textContent = `${currentQ+1} / ${totalQ}`;
+    const fillPercent = ((currentQ)/totalQ)*100;
+    heartFill.style.width = fillPercent + '%';
+    const barWidth = heartBar.offsetWidth;
+    const heartOffset = 9;
+    let leftPos = (fillPercent/100)*barWidth - heartOffset;
+    if(leftPos < 0) leftPos = 0;
+    if(leftPos > barWidth - 2*heartOffset) leftPos = barWidth - 2*heartOffset;
+    floatingHeart.style.left = `${leftPos}px`;
+}
+
+function handleAnswer(btn) {
+    const q = questions[currentQ];
+    if(btn.textContent === q.a) {
+        currentQ++;
+        if(currentQ >= totalQ) {
+            document.getElementById('stage1').style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('stage1').style.display = 'none';
+                const stage2 = document.getElementById('stage2');
+                stage2.style.display = 'block';
+                setTimeout(()=>stage2.classList.add('show'),50);
+                startSlideshow();
+            }, 800);
+        } else {
+            updateQuestion();
+        }
+    } else {
+        document.getElementById('question-card').classList.add('shake');
+        setTimeout(()=>{
+            document.getElementById('question-card').classList.remove('shake');
+            currentQ = 0;
+            updateQuestion();
+        },600);
+    }
+}
+
+optionA.onclick=()=>handleAnswer(optionA);
+optionB.onclick=()=>handleAnswer(optionB);
+
+updateQuestion();
+
+// SLIDESHOW (images + videos)
+const slides = [
+    {type:"image", src:"assets/images/img1.jpeg", caption:"Our very first picture together"},
+    {type:"image", src:"assets/images/img2.jpeg", caption:"First time we held hands"},
+    {type:"image", src:"assets/images/img3.jpeg", caption:"First time we hugged"},
+    {type:"image", src:"assets/images/img4.jpeg", caption:"First 31st night together"},
+    {type:"image", src:"assets/images/img5.jpeg", caption:"First date"},
+    {type:"video", src:"assets/videos/video7.mp4", caption:"You were simulating pregnancy😭"},
+    {type:"video", src:"assets/videos/video8.mp4", caption:"You were late for midweek but you'd rather warn me to learn how to dance"},
+    {type:"video", src:"assets/videos/video9.mp4", caption:"Picking on me for doing too much to impress you🤧"},
+    {type:"video", src:"assets/videos/video10.mp4", caption:"I dared to lose🤧"},
+];
+
+let slideIndex=0;
+const slideImage=document.getElementById("slide-image");
+const slideVideo=document.getElementById("slide-video");
+const slideCaption=document.getElementById("slide-caption");
+
+function startSlideshow(){ showSlide(); }
+
+function showSlide(){
+    if(slideIndex >= slides.length){ showValentine(); return; }
+    const slide = slides[slideIndex];
+    if(slide.type==="image"){
+        slideVideo.style.display="none";
+        slideVideo.pause();
+        slideImage.src = slide.src;
+        slideImage.style.display="block";
+    } else {
+        slideImage.style.display="none";
+        slideVideo.src = slide.src;
+        slideVideo.style.display="block";
+        slideVideo.play();
+    }
+    slideCaption.textContent = slide.caption;
+    slideIndex++;
+    setTimeout(showSlide,7000);
+}
+
+// STAGE 3 VALENTINE
+function showValentine(){
+    document.getElementById("stage2").style.display="none";
+    const stage3 = document.getElementById("stage3");
+    stage3.style.display="flex";
+
+    const yesBtn = document.getElementById("yes-btn");
+    const noBtn = document.getElementById("no-btn");
+
+    noBtn.addEventListener("mouseenter",()=>{
+        const maxX = stage3.offsetWidth - noBtn.offsetWidth;
+        const maxY = stage3.offsetHeight - noBtn.offsetHeight;
+        const newX = Math.floor(Math.random()*maxX);
+        const newY = Math.floor(Math.random()*maxY);
+        noBtn.style.left = newX + "px";
+        noBtn.style.top = newY + "px";
+    });
+
+    yesBtn.addEventListener("click",()=>{
+        alert("You said YESSS 😭❤️");
+        stage3.style.display="none";
+        const stage4 = document.getElementById("stage4");
+        stage4.style.display="flex";
+        const finalVideo = document.getElementById("final-video");
+        finalVideo.play();
+    });
+}
+</script>
+
+</body>
+</html>
